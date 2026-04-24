@@ -1,3 +1,7 @@
 BASE_URL = "https://stellarburgers.education-services.ru"
-REGISTER_URL = BASE_URL + "/register"
-LOGIN_URL = BASE_URL + "/login"
+
+LOGIN_URL = f"{BASE_URL}/login"
+REGISTER_URL = f"{BASE_URL}/register"
+FORGOT_PASSWORD_URL = f"{BASE_URL}/forgot-password"
+PROFILE_URL = f"{BASE_URL}/account/profile"
+MAIN_URL = BASE_URL

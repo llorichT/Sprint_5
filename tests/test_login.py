@@ -1,16 +1,69 @@
-from data import EMAIL, PASSWORD, BASE_URL
-from pages.locators import MainPageLocators, LoginPageLocators
-from helpers import wait_for_clickable, safe_click
+from helpers.auth import register_generated_user, login
+from helpers.waits import wait_for_visible, safe_click
+from pages.locators import (
+    MainPageLocators,
+    RegisterPageLocators,
+    LoginPageLocators,
+    ForgotPasswordPageLocators,
+)
+from url import BASE_URL, REGISTER_URL, LOGIN_URL
 
 
-def test_login_from_main_button(driver):
-    driver.get(BASE_URL)
+class TestLogin:
 
-    login_button_main = wait_for_clickable(driver, MainPageLocators.LOGIN_BUTTON)
-    safe_click(driver, login_button_main)
+    def test_login_from_main_button(self, driver):
+        try:
+            user = register_generated_user(driver)
 
-    driver.find_element(*LoginPageLocators.EMAIL_INPUT).send_keys(EMAIL)
-    driver.find_element(*LoginPageLocators.PASSWORD_INPUT).send_keys(PASSWORD)
+            driver.get(BASE_URL)
+            safe_click(driver, MainPageLocators.LOGIN_BUTTON)
 
-    login_button = wait_for_clickable(driver, LoginPageLocators.LOGIN_BUTTON)
-    safe_click(driver, login_button)
+            login(driver, user["email"], user["password"])
+
+            assert wait_for_visible(driver, MainPageLocators.PERSONAL_ACCOUNT).is_displayed()
+
+        finally:
+            driver.quit()
+
+    def test_login_from_personal_account(self, driver):
+        try:
+            user = register_generated_user(driver)
+
+            driver.get(BASE_URL)
+            safe_click(driver, MainPageLocators.PERSONAL_ACCOUNT)
+
+            login(driver, user["email"], user["password"])
+
+            assert wait_for_visible(driver, MainPageLocators.PERSONAL_ACCOUNT).is_displayed()
+
+        finally:
+            driver.quit()
+
+    def test_login_from_register_form(self, driver):
+        try:
+            user = register_generated_user(driver)
+
+            driver.get(REGISTER_URL)
+            safe_click(driver, RegisterPageLocators.LOGIN_LINK)
+
+            login(driver, user["email"], user["password"])
+
+            assert wait_for_visible(driver, MainPageLocators.PERSONAL_ACCOUNT).is_displayed()
+
+        finally:
+            driver.quit()
+
+    def test_login_from_forgot_password_form(self, driver):
+        try:
+            user = register_generated_user(driver)
+
+            driver.get(LOGIN_URL)
+            safe_click(driver, LoginPageLocators.FORGOT_PASSWORD_LINK)
+            safe_click(driver, ForgotPasswordPageLocators.LOGIN_LINK)
+
+            login(driver, user["email"], user["password"])
+
+            assert wait_for_visible(driver, MainPageLocators.PERSONAL_ACCOUNT).is_displayed()
+
+        finally:
+            driver.quit()

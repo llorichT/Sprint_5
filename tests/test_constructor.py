@@ -1,24 +1,34 @@
-from data import BASE_URL
+import pytest
+
+from helpers.waits import wait_for_visible, safe_click, wait_overlay_disappear
 from pages.locators import ConstructorLocators
-from helpers import wait_for_clickable, safe_click
+from url import BASE_URL
 
 
-def test_switch_to_buns(driver):
-    driver.get(BASE_URL)
+class TestConstructor:
 
-    buns_tab = wait_for_clickable(driver, ConstructorLocators.BUNS_TAB)
-    safe_click(driver, buns_tab)
+    @pytest.mark.parametrize(
+        "tab, section",
+        [
+            (ConstructorLocators.BUNS_TAB, ConstructorLocators.BUNS_SECTION),
+            (ConstructorLocators.SAUCES_TAB, ConstructorLocators.SAUCES_SECTION),
+            (ConstructorLocators.FILLINGS_TAB, ConstructorLocators.FILLINGS_SECTION),
+        ],
+    )
+    def test_constructor_tabs(self, driver, tab, section):
+        try:
+            driver.get(BASE_URL)
 
+            wait_overlay_disappear(driver)
 
-def test_switch_to_sauces(driver):
-    driver.get(BASE_URL)
+            element = wait_for_visible(driver, tab)
+            driver.execute_script("arguments[0].scrollIntoView(true);", element)
 
-    sauces_tab = wait_for_clickable(driver, ConstructorLocators.SAUCES_TAB)
-    safe_click(driver, sauces_tab)
+            safe_click(driver, tab)
 
+            section_element = wait_for_visible(driver, section)
 
-def test_switch_to_fillings(driver):
-    driver.get(BASE_URL)
+            assert section_element.is_displayed()
 
-    fillings_tab = wait_for_clickable(driver, ConstructorLocators.FILLINGS_TAB)
-    safe_click(driver, fillings_tab)
+        finally:
+            driver.quit()
