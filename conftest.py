@@ -42,5 +42,5 @@ def driver(request):
     driver.implicitly_wait(5)
 
     yield driver
-
     driver.quit()
+

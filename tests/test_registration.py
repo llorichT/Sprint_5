@@ -1,16 +1,9 @@
 import pytest
 
-from helpers.generators import (
-    generate_name,
-    generate_surname,
-    generate_cohort,
-    generate_domain,
-    generate_email,
-    generate_password,
-)
+from helpers.generators import generate_user_data, generate_password
 from helpers.waits import wait_for_visible, safe_click
 from pages.locators import RegisterPageLocators, LoginPageLocators
-from url import REGISTER_URL
+from url import REGISTER_URL, LOGIN_URL
 
 
 def fill_registration_form(driver, name, email, password):
@@ -19,53 +12,33 @@ def fill_registration_form(driver, name, email, password):
     wait_for_visible(driver, RegisterPageLocators.PASSWORD_INPUT).send_keys(password)
 
 
-def generate_valid_email():
-    name = generate_name()
-    surname = generate_surname()
-    cohort = generate_cohort()
-    domain = generate_domain()
-
-    return generate_email(name, surname, cohort, domain)
-
-
 class TestRegistration:
 
     def test_successful_registration(self, driver):
-        try:
-            name = generate_name()
-            email = generate_valid_email()
-            password = generate_password()
+        user = generate_user_data()
 
-            driver.get(REGISTER_URL)
+        driver.get(REGISTER_URL)
 
-            fill_registration_form(driver, name, email, password)
-            safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
+        fill_registration_form(driver, user["name"], user["email"], user["password"])
+        safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
 
-            login_input = wait_for_visible(driver, LoginPageLocators.EMAIL_INPUT)
+        wait_for_visible(driver, LoginPageLocators.LOGIN_BUTTON)
 
-            assert login_input.is_displayed()
+        assert driver.current_url == LOGIN_URL
 
-        finally:
-            driver.quit()
 
     def test_registration_invalid_password(self, driver):
-        try:
-            name = generate_name()
-            email = generate_valid_email()
-            password = "123"
+        user = generate_user_data()
 
-            driver.get(REGISTER_URL)
+        driver.get(REGISTER_URL)
 
-            fill_registration_form(driver, name, email, password)
-            safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
+        fill_registration_form(driver, user["name"], user["email"], "123")
+        safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
 
-            error = wait_for_visible(driver, RegisterPageLocators.ERROR_MESSAGE)
+        error = wait_for_visible(driver, RegisterPageLocators.ERROR_MESSAGE)
 
-            assert error.is_displayed()
-            assert error.text != ""
+        assert error.text == "Некорректный пароль"
 
-        finally:
-            driver.quit()
 
     @pytest.mark.parametrize("invalid_email", [
         "test",
@@ -75,19 +48,28 @@ class TestRegistration:
         "test@.ru",
     ])
     def test_registration_invalid_email(self, driver, invalid_email):
-        try:
-            name = generate_name()
-            password = generate_password()
+        user = generate_user_data()
 
-            driver.get(REGISTER_URL)
+        driver.get(REGISTER_URL)
 
-            fill_registration_form(driver, name, invalid_email, password)
-            safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
+        fill_registration_form(driver, user["name"], invalid_email, user["password"])
+        safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
 
-            error = wait_for_visible(driver, RegisterPageLocators.ERROR_MESSAGE)
+        error = wait_for_visible(driver, RegisterPageLocators.ERROR_MESSAGE)
 
-            assert error.is_displayed()
-            assert error.text != ""
+        assert error.is_displayed()
+        assert error.text != ""
 
-        finally:
-            driver.quit()
+
+    def test_registration_empty_name(self, driver):
+        user = generate_user_data()
+
+        driver.get(REGISTER_URL)
+
+        fill_registration_form(driver, "", user["email"], user["password"])
+        safe_click(driver, RegisterPageLocators.REGISTER_BUTTON)
+
+        name_input = wait_for_visible(driver, RegisterPageLocators.NAME_INPUT)
+
+        assert driver.current_url == REGISTER_URL
+        assert name_input.is_displayed()

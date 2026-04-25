@@ -16,19 +16,15 @@ class TestConstructor:
         ],
     )
     def test_constructor_tabs(self, driver, tab, section):
-        try:
-            driver.get(BASE_URL)
+        driver.get(BASE_URL)
 
-            wait_overlay_disappear(driver)
+        wait_overlay_disappear(driver)
 
-            element = wait_for_visible(driver, tab)
-            driver.execute_script("arguments[0].scrollIntoView(true);", element)
+        element = wait_for_visible(driver, tab)
+        driver.execute_script("arguments[0].scrollIntoView(true);", element)
 
-            safe_click(driver, tab)
+        safe_click(driver, tab)
 
-            section_element = wait_for_visible(driver, section)
+        section_element = wait_for_visible(driver, section)
 
-            assert section_element.is_displayed()
-
-        finally:
-            driver.quit()
+        assert section_element.is_displayed()
